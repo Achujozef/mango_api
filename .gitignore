@@ -1,0 +1,75 @@
+# Byte-compiled / optimized / DLL files
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.so
+
+# Django stuff
+*.log
+*.pot
+*.py[co]
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+
+# Exclude migration files
+**/migrations/
+!**/migrations/__init__.py
+
+# If you're using PostgreSQL:
+*.pgsql
+
+# If you're using MySQL:
+*.mysql
+
+# Environments
+.env
+*.env
+env/
+venv/
+venv-*/
+
+# VSCode
+.vscode/
+
+# PyCharm
+.idea/
+*.iml
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Node.js
+node_modules/
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# pipenv
+Pipfile.lock
+
+# Celery task queue
+celerybeat-schedule
+
+# Docker
+*.pid
+*.seed
+*.bak
+*.backup
+
+# Other system files
+*.swp
+*.swo
+*~
