@@ -5,7 +5,7 @@ from .models import (
     Category,
     Product,
     ProductVariant,
-    VariantImage,
+    ProductImage,
     Cart,
     Order,
     OrderItem,
@@ -16,7 +16,7 @@ from .models import (
     SalesReport,
     CustomerActivity,
 )
-
+admin.site.register(ProductImage)
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
     list_display = ('phone_number', 'email', 'first_name', 'last_name', 'created_at')
@@ -45,10 +45,10 @@ class ProductVariantAdmin(admin.ModelAdmin):
     list_filter = ('expiry_date',)
 
 
-@admin.register(VariantImage)
-class VariantImageAdmin(admin.ModelAdmin):
-    list_display = ('variant', 'is_default')
-    search_fields = ('variant__name',)
+# @admin.register(VariantImage)
+# class ProductImageAdmin(admin.ModelAdmin):
+#     list_display = ('variant', 'is_default')
+#     search_fields = ('variant__name',)
 
 
 @admin.register(Cart)

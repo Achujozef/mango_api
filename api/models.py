@@ -4,9 +4,12 @@ from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import now
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractBaseUser,BaseUserManager
+from .utils import send_otp
+from .helper import generate_otp
 
-User = get_user_model()
 
+
+    
 # Define a custom User Manager
 class CustomerManager(BaseUserManager):
     def create_user(self, phone_number, password=None, **extra_fields):
@@ -16,6 +19,11 @@ class CustomerManager(BaseUserManager):
         user = self.model(phone_number=phone_number, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
+
+        otp = generate_otp()
+        OTP.objects.create(user=user, otp=otp)
+        send_otp(str(user.id), otp)  # Ensure `id` is a string when passed
+
         return user
 
     def create_superuser(self, phone_number, password=None, **extra_fields):
@@ -55,6 +63,29 @@ class Customer(AbstractBaseUser):
 
     def __str__(self):
         return f"{self.phone_number} ({self.email if self.email else 'No Email'})"
+    
+    def has_perm(self, perm, obj=None):
+        """Does the user have a specific permission?"""
+        return True  # Allow all permissions for now
+
+    def has_module_perms(self, app_label):
+        """Does the user have permissions to view the app `app_label`?"""
+        return True  # Allow access to all modules
+
+    
+
+class OTP(models.Model):
+    user = models.OneToOneField(Customer, on_delete=models.SET_NULL, blank=True, null=True, related_name='otp')
+    otp = models.CharField(max_length=6, verbose_name="OTP")
+    created_at = models.DateTimeField(default=now, verbose_name="Created At")
+
+    class Meta:
+        verbose_name = "OTP"
+        verbose_name_plural = "OTPs"
+
+    def __str__(self):
+        return f"{self.user.phone_number} - {self.otp}"
+    
 
 class BaseModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -92,7 +123,7 @@ class Address(BaseModel):
 class Category(MPTTModel):
     name = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(max_length=255, unique=True)
-    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,default=None, related_name='children')
     description = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
@@ -118,6 +149,7 @@ class Product(BaseModel):
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     tags = models.CharField(max_length=255, blank=True, null=True)  
+    image = models.ImageField(upload_to='variant_images/',blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -137,18 +169,18 @@ class ProductVariant(BaseModel):
     def is_in_stock(self):
         return self.stock > 0
 
-class VariantImage(BaseModel):
-    variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name='images')
+class ProductImage(BaseModel):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='variant_images/')
     alt_text = models.CharField(max_length=255, blank=True, null=True)  # Optional alt text for the image
     is_default = models.BooleanField(default=False)  # Mark a primary image for the variant
 
     def __str__(self):
-        return f"Image for {self.variant.name} - {self.variant.value}"
+        return f"Image for {self.product.name}"
     
 
 class Cart(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="cart", verbose_name="User")
+    user = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="cart", verbose_name="User")
     product_variant = models.ForeignKey(
         'ProductVariant', on_delete=models.CASCADE, related_name="cart_items", verbose_name="Product Variant"
     )
@@ -176,7 +208,7 @@ class Order(BaseModel):
         ('Online', 'Online Payment'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders", verbose_name="User")
+    user = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="orders", verbose_name="User")
     order_number = models.CharField(max_length=100, unique=True, verbose_name="Order Number")
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Total Amount")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending', verbose_name="Order Status")
@@ -255,7 +287,7 @@ class Advertisement(BaseModel):
     
 
 class ProductReview(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="product_reviews", verbose_name="User")
+    user = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="product_reviews", verbose_name="User")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reviews", verbose_name="Product")
     rating = models.PositiveIntegerField(verbose_name="Rating", choices=[(i, i) for i in range(1, 6)])
     comment = models.TextField(blank=True, null=True, verbose_name="Review Comment")
@@ -270,8 +302,8 @@ class ProductReview(BaseModel):
 
 
 class VendorReview(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="vendor_reviews", verbose_name="User")
-    supplier = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_reviews", verbose_name="Supplier")
+    user = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="vendor_reviews", verbose_name="User")
+    supplier = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="received_reviews", verbose_name="Supplier")
     rating = models.PositiveIntegerField(verbose_name="Rating", choices=[(i, i) for i in range(1, 6)])
     comment = models.TextField(blank=True, null=True, verbose_name="Review Comment")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
@@ -304,7 +336,7 @@ class CustomerActivity(BaseModel):
         ('Search', 'Search'),
         ('Purchase', 'Purchase'),
     ]
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="activities", verbose_name="User")
+    user = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="activities", verbose_name="User")
     activity_type = models.CharField(max_length=50, choices=ACTIVITY_TYPES, verbose_name="Activity Type")
     timestamp = models.DateTimeField(auto_now_add=True, verbose_name="Timestamp")
 

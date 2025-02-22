@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  getorgi:
+    restart: always
+    build: .
+    command: python manage.py runserver 0.0.0.0:8001
+    volumes:
+      - .:/app
+    ports:
+      - "8001:8001"
+    expose:
+      - "8002"
+
+  redis:
+    image: redis:alpine
+    restart: always
+    expose:
+      - "6379"
+
+volumes:
+  static_volume:
+    driver: local
+
+networks:
+  getorgi_backend_tier: 
+    driver: bridge
