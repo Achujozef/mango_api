@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Admin Dashboard</h2>
+
+    <div class="row">
+        <!-- Total Customers -->
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Total Customers</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_customers }}</h5>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Orders -->
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Today's Orders</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_orders_today }}</h5>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Sales Today -->
+        <div class="col-md-4">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-header">Total Sales (Today)</div>
+                <div class="card-body">
+                    <h5 class="card-title">₹{{ total_sales_today }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bar Chart -->
+    <div class="card">
+        <div class="card-header">Monthly Sales Report</div>
+        <div class="card-body">
+            <canvas id="salesChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js for the Bar Graph -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctx = document.getElementById('salesChart').getContext('2d');
+    var salesChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ months|safe }},
+            datasets: [{
+                label: 'Total Sales (₹)',
+                data: {{ monthly_sales|safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
+{% endblock %}

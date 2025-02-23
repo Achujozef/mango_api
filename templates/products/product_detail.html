@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto px-6 py-12">
+    <!-- Product Header -->
+    <div class="bg-white shadow-xl rounded-2xl p-8">
+        <h2 class="text-4xl font-bold text-gray-900 mb-4">{{ product.name }}</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <!-- Product Image -->
+            <div class="relative">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full rounded-xl shadow-lg">
+                {% else %}
+                    <img src="https://via.placeholder.com/500" alt="No image available" class="w-full rounded-xl shadow-lg">
+                {% endif %}
+                <span class="absolute top-2 left-2 bg-gray-900 text-white px-3 py-1 text-xs uppercase rounded-md">
+                    {{ product.category.name }}
+                </span>
+            </div>
+
+            <!-- Product Details -->
+            <div class="space-y-4">
+                <p class="text-lg text-gray-600"><strong>ID:</strong> {{ product.id }}</p>
+                <p class="text-lg text-gray-600"><strong>Description:</strong> {{ product.description }}</p>
+                <p class="text-lg text-gray-600"><strong>Tags:</strong> {{ product.tags }}</p>
+                <p class="text-lg">
+                    <strong>Status:</strong> 
+                    <span class="px-3 py-1 rounded-lg {% if product.is_active %}bg-green-500 text-white{% else %}bg-red-500 text-white{% endif %}">
+                        {% if product.is_active %} Active {% else %} Inactive {% endif %}
+                    </span>
+                </p>
+                <p class="text-lg">
+                    <strong>Featured:</strong> 
+                    <span class="px-3 py-1 rounded-lg {% if product.is_featured %}bg-yellow-500 text-white{% else %}bg-gray-400 text-white{% endif %}">
+                        {% if product.is_featured %} Yes {% else %} No {% endif %}
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Variants -->
+    <div class="mt-12">
+        <h3 class="text-3xl font-semibold text-gray-900 mb-6">Available Variants</h3>
+        
+        <div class="overflow-hidden border border-gray-200 rounded-xl shadow-lg">
+            <table class="w-full text-left bg-white">
+                <thead>
+                    <tr class="bg-gray-900 text-white text-sm uppercase tracking-wider">
+                        <th class="py-4 px-6">Variant ID</th>
+                        <th class="py-4 px-6">Name</th>
+                        <th class="py-4 px-6">Value</th>
+                        <th class="py-4 px-6">Price</th>
+                        <th class="py-4 px-6">Stock</th>
+                        <th class="py-4 px-6">Expiry Date</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    {% for variant in variants %}
+                    <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+                        <td class="py-4 px-6 font-medium text-gray-900">{{ variant.id }}</td>
+                        <td class="py-4 px-6">{{ variant.name }}</td>
+                        <td class="py-4 px-6">{{ variant.value }}</td>
+                        <td class="py-4 px-6 font-semibold text-green-600">₹{{ variant.price }}</td>
+                        <td class="py-4 px-6 {% if variant.stock == 0 %}text-red-500 font-semibold{% endif %}">{{ variant.stock }}</td>
+                        <td class="py-4 px-6">{% if variant.expiry_date %}{{ variant.expiry_date }}{% else %}-{% endif %}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-6 px-6 text-center text-gray-500">No variants available</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -216,6 +216,7 @@ class Order(BaseModel):
     delivery_address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders", verbose_name="Delivery Address")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Order Created At")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Order Updated At")
+    is_viewed = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "Order"
@@ -232,7 +233,8 @@ class OrderItem(BaseModel):
     quantity = models.PositiveIntegerField(verbose_name="Quantity")
     price_per_item = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Price Per Item")
     total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Total Price")
-
+    able_to_deliver = models.BooleanField(default=True)
+    
     class Meta:
         verbose_name = "Order Item"
         verbose_name_plural = "Order Items"

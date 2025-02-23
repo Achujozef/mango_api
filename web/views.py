@@ -1,9 +1,17 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
-from api.models import Product, ProductVariant, Category, ProductImage, Product
-from .forms import ProductForm, ProductVariantForm,ProductImageForm
+from api.models import Product, ProductVariant, Category, ProductImage, Product, Customer, Order
+from .forms import ProductForm, ProductVariantForm,ProductImageForm,CategoryForm
 from django.forms import modelformset_factory
 from django.core.paginator import Paginator
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+from django.urls import reverse
+from django.http import HttpResponseRedirect
+from django.utils.timezone import now
+from datetime import timedelta
+from django.db.models import Sum, Count
+from django.http import JsonResponse
 
 def product_list(request):
     search_query = request.GET.get('q', '')
@@ -102,3 +110,175 @@ def edit_product(request, product_id):
         "image_formset": image_formset,
         "product": product
     })
+
+def category_list(request):
+    categories = Category.objects.all()
+    paginator = Paginator(categories, 30)  # Show 30 categories per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'categories/category_list.html', {'page_obj': page_obj})
+
+def category_create(request):
+    if request.method == 'POST':
+        form = CategoryForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Category created successfully!")
+            return redirect('category_list')
+    else:
+        form = CategoryForm()
+    
+    return render(request, 'categories/category_form.html', {'form': form})
+
+def category_edit(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    if request.method == 'POST':
+        form = CategoryForm(request.POST, request.FILES, instance=category)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Category updated successfully!")
+            return redirect('category_list')
+    else:
+        form = CategoryForm(instance=category)
+
+    return render(request, 'categories/category_form.html', {'form': form})
+
+def category_delete(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    category.delete()
+    messages.success(request, "Category deleted successfully!")
+    return redirect('category_list')
+
+def admin_login(request):
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect('admin_a_dashboard')  # Redirect to admin dashboard if already logged in
+
+    if request.method == "POST":
+        phone_number = request.POST.get("phone_number")
+        password = request.POST.get("password")
+        user = authenticate(request, phone_number=phone_number, password=password)
+
+        if user is not None and user.is_superuser:
+            login(request, user)
+            messages.success(request, "Login successful!")
+            return redirect('admin_a_dashboard')
+        else:
+            messages.error(request, "Invalid credentials or not an admin user.")
+    
+    return render(request, "admin_login.html")
+
+def admin_logout(request):
+    """Logs out the admin user and redirects to the login page."""
+    if request.method in ['GET', 'POST']:  # Allow both GET and POST
+        logout(request)
+        messages.success(request, "Logged out successfully!")
+        return redirect(reverse('admin_login'))
+
+def admin_dashboard(request):
+    print("Called the dashboar view")
+    today = now().date()
+
+    # Get total number of customers
+    total_customers = Customer.objects.count()
+
+    # Get total orders of today
+    total_orders_today = Order.objects.filter(created_at__date=today).count()
+
+    # Get total sale amount of today
+    total_sales_today = Order.objects.filter(created_at__date=today).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+
+    # Monthly sales data
+    sales_data = (
+        Order.objects.filter(created_at__year=today.year)
+        .values('created_at__month')
+        .annotate(total_sales=Sum('total_amount'))
+        .order_by('created_at__month')
+    )
+
+    # Prepare data for the graph
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    monthly_sales = [0] * 12
+    for entry in sales_data:
+        monthly_sales[entry['created_at__month'] - 1] = float(entry['total_sales'])  # Convert Decimal to float
+
+    context = {
+        'total_customers': total_customers,
+        'total_orders_today': total_orders_today,
+        'total_sales_today': total_sales_today,
+        'months': months,
+        'monthly_sales': monthly_sales,
+    }
+
+    return render(request, 'dashboard.html', context)
+
+# 1. List Orders
+def order_list(request):
+    orders = Order.objects.order_by('-created_at')
+    return render(request, 'order/order_list.html', {'orders': orders})
+
+# 2. View Order Details
+def order_detail(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    order.is_viewed = True  # Mark as viewed
+    order.save()
+
+    order_items = order.items.all()
+    return render(request, 'order/order_detail.html', {
+        'order': order,
+        'order_items': order_items
+    })
+
+# 3. Update Order Items via AJAX
+def update_order_items(request, order_id):
+    if request.method == 'POST':
+        order = get_object_or_404(Order, id=order_id)
+        item_ids = request.POST.getlist('selected_items[]')
+
+        # Update able_to_deliver for order items
+        for item in order.items.all():
+            item.able_to_deliver = str(item.id) in item_ids
+            item.save()
+
+        # Recalculate total price
+        total_price = order.items.filter(able_to_deliver=True).aggregate(Sum('total_price'))['total_price__sum'] or 0
+        order.total_amount = total_price
+        order.save()
+
+        return JsonResponse({'success': True, 'total_amount': total_price})
+    return JsonResponse({'success': False}, status=400)
+
+def product_detail(request, slug):
+    product = get_object_or_404(Product, slug=slug)
+    variants = product.variants.all()  # Get all variants related to the product
+    return render(request, 'products/product_detail.html', {'product': product, 'variants': variants})
+
+def delete_product(request, product_id, soft_delete=True):
+    """Delete a product: Soft delete by default (set is_active=False), or hard delete if requested."""
+    product = get_object_or_404(Product, id=product_id)
+
+    if soft_delete:
+        product.is_active = False
+        product.save()
+        messages.success(request, f"Product '{product.name}' has been deactivated (soft deleted).")
+    else:
+        product.delete()
+        messages.success(request, f"Product '{product.name}' has been permanently deleted.")
+
+    return redirect("product_list")  # Change 'product_list' to your actual product listing view name
+
+def delete_product_ajax(request, product_id):
+    """AJAX-based deletion request for soft delete (default) or hard delete."""
+    if request.method == "POST":
+        product = get_object_or_404(Product, id=product_id)
+        soft_delete = request.POST.get("soft_delete", "true") == "true"
+
+        if soft_delete:
+            product.is_active = False
+            product.save()
+            return JsonResponse({"message": f"Product '{product.name}' has been soft deleted.", "status": "success"})
+        else:
+            product.delete()
+            return JsonResponse({"message": f"Product '{product.name}' has been permanently deleted.", "status": "success"})
+    
+    return JsonResponse({"message": "Invalid request", "status": "error"}, status=400)

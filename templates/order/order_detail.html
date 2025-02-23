@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Order {{ order.order_number }}</h2>
+
+<p><strong>Customer:</strong> {{ order.user }}</p>
+<p><strong>Address:</strong> {{ order.delivery_address.address }}</p>
+<p><strong>Total Amount:</strong> <span id="total_amount">${{ order.total_amount }}</span></p>
+
+<h3>Order Items</h3>
+<button id="select_all">Select All</button>
+<form id="update_order_form">
+    {% csrf_token %}
+    <table>
+        <thead>
+            <tr>
+                <th>Select</th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order_items %}
+            <tr>
+                <td>
+                    <input type="checkbox" class="select-item" name="selected_items[]" value="{{ item.id }}" {% if item.able_to_deliver %}checked{% endif %}>
+                </td>
+                <td>{{ item.product_variant }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>${{ item.total_price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button type="submit">Update Order</button>
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function(){
+        // Select all items
+        $("#select_all").click(function(){
+            $(".select-item").prop('checked', true);
+        });
+
+        // AJAX update order items
+        $("#update_order_form").submit(function(e){
+            e.preventDefault();
+            let formData = $(this).serialize();
+            $.post("{% url 'update_order_items' order.id %}", formData, function(data){
+                if(data.success){
+                    $("#total_amount").text("$" + data.total_amount);
+                    alert("Order updated successfully!");
+                }
+            });
+        });
+
+        // Change order status via AJAX
+        $(".status-dropdown").change(function(){
+            let orderId = $(this).data("order-id");
+            let status = $(this).val();
+            $.post("{% url 'update_order_items' order.id %}", { status: status, csrfmiddlewaretoken: "{{ csrf_token }}" }, function(){
+                alert("Order status updated!");
+            });
+        });
+    });
+</script>
+{% endblock %}

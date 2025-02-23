@@ -2,7 +2,11 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2>Product List</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Product List</h2>
+        <a href="{% url 'add_product' %}" class="btn btn-success">+ Add Product</a>
+    </div>
+
     <form method="GET" class="mb-3">
         <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Search by product name">
         <button type="submit" class="btn btn-primary mt-2">Search</button>
@@ -30,11 +34,12 @@
                     {% endif %}
                 </td>
                 <td>
-                    <a href="#" class="btn btn-info">View</a>
-                    <a href="#" class="btn btn-warning">Edit</a>
-                    <a href="#" class="btn btn-danger">Delete</a>
+                    <a href="/product/{{ product.slug }}" class="btn btn-info">View</a>
+                    <a href="/product/edit/{{ product.id }}" class="btn btn-warning">Edit</a>
+                    <button class="btn btn-danger delete-btn" data-id="{{ product.id }}">Delete</button>
                     <a href="#" class="btn btn-secondary">View Sales</a>
                 </td>
+                
             </tr>
             {% endfor %}
         </tbody>
@@ -62,6 +67,35 @@
     document.getElementById("select_all").addEventListener("change", function() {
         let checkboxes = document.querySelectorAll(".product_checkbox");
         checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".delete-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                let productId = this.getAttribute("data-id");
+                let isConfirmed = confirm("Are you sure you want to delete this product?");
+                
+                if (isConfirmed) {
+                    let softDelete = confirm("Do you want to soft delete (deactivate) this product? Click 'Cancel' for permanent deletion.");
+
+                    fetch(`/product/delete/ajax/${productId}/`, {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ soft_delete: softDelete })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        location.reload();
+                    })
+                    .catch(error => console.error("Error:", error));
+                }
+            });
+        });
     });
 </script>
 

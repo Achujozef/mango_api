@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto p-6">
+    <h2 class="text-2xl font-semibold mb-4">Orders</h2>
+    <div class="overflow-x-auto">
+        {% if orders %}
+        <table class="min-w-full bg-white shadow-md rounded-lg">
+            <thead>
+                <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                    <th class="py-3 px-6 text-left">Order Number</th>
+                    <th class="py-3 px-6 text-left">Customer</th>
+                    <th class="py-3 px-6 text-left">Total Amount</th>
+                    <th class="py-3 px-6 text-left">Address</th>
+                    <th class="py-3 px-6 text-left">Status</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-700 text-sm">
+                {% for order in orders %}
+                <tr class="border-b border-gray-200 {% if not order.is_viewed %}font-bold{% endif %} hover:bg-gray-50">
+                    <td class="py-3 px-6">
+                        <a href="{% url 'order_detail' order.id %}" class="text-blue-600 hover:underline">
+                            {{ order.order_number }}
+                        </a>
+                    </td>
+                    <td class="py-3 px-6">{{ order.user }}</td>
+                    <td class="py-3 px-6">${{ order.total_amount }}</td>
+                    <td class="py-3 px-6">{{ order.delivery_address.address }}</td>
+                    <td class="py-3 px-6">
+                        {% if order.status == "Out for Delivery" %}
+                        <select class="status-dropdown border rounded-md px-2 py-1 text-gray-700" data-order-id="{{ order.id }}">
+                            {% for status, label in order.STATUS_CHOICES %}
+                            <option value="{{ status }}" {% if order.status == status %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        {% else %}
+                        <span class="px-2 py-1 rounded text-white {% if order.status == 'Delivered' %}bg-green-500{% elif order.status == 'Pending' %}bg-yellow-500{% elif order.status == 'Cancelled' %}bg-red-500{% else %}bg-blue-500{% endif %}">
+                            {{ order.status }}
+                        </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <!-- Dummy Data -->
+        <div class="bg-gray-100 p-6 rounded-lg text-center">
+            <p class="text-gray-600 text-lg">No orders found. Here are some sample orders:</p>
+            <table class="min-w-full bg-white shadow-md rounded-lg mt-4">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                        <th class="py-3 px-6 text-left">Order Number</th>
+                        <th class="py-3 px-6 text-left">Customer</th>
+                        <th class="py-3 px-6 text-left">Total Amount</th>
+                        <th class="py-3 px-6 text-left">Address</th>
+                        <th class="py-3 px-6 text-left">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700 text-sm">
+                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                        <td class="py-3 px-6">#1001</td>
+                        <td class="py-3 px-6">John Doe</td>
+                        <td class="py-3 px-6">$120.50</td>
+                        <td class="py-3 px-6">123 Main St, NY</td>
+                        <td class="py-3 px-6">
+                            <span class="px-2 py-1 rounded text-white bg-green-500">Delivered</span>
+                        </td>
+                    </tr>
+                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                        <td class="py-3 px-6">#1002</td>
+                        <td class="py-3 px-6">Jane Smith</td>
+                        <td class="py-3 px-6">$80.75</td>
+                        <td class="py-3 px-6">456 Elm St, CA</td>
+                        <td class="py-3 px-6">
+                            <span class="px-2 py-1 rounded text-white bg-yellow-500">Pending</span>
+                        </td>
+                    </tr>
+                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                        <td class="py-3 px-6">#1003</td>
+                        <td class="py-3 px-6">Mike Johnson</td>
+                        <td class="py-3 px-6">$250.00</td>
+                        <td class="py-3 px-6">789 Oak St, TX</td>
+                        <td class="py-3 px-6">
+                            <span class="px-2 py-1 rounded text-white bg-red-500">Cancelled</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
