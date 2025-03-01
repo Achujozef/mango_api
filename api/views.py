@@ -17,7 +17,7 @@ from rest_framework.exceptions import NotFound
 from django.db.models import Min
 import uuid
 from django.db import transaction
-
+from rest_framework import viewsets
 User = get_user_model()
 
 class ProtectedView(APIView):
@@ -116,40 +116,12 @@ class VerifyOTPView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+class ProductListView(APIView):
+    def get(self, request):
+        products = Product.objects.all()
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-class CategoryCreateView(APIView):
-    """
-        {
-        "name": "Electronics",
-        "slug": "electronics",
-        "parent": null,
-        "description": "All kinds of electronic items",
-        "image": null,
-        "is_active": true,
-        "meta_title": "Best Electronics",
-        "meta_description": "Find the best electronics at great prices"
-        }
-    """
-    permission_classes = [AllowAny]
-    def post(self, request, *args, **kwargs):
-        serializer = CategorySerializer(data=request.data)
-        if serializer.is_valid():
-            category = serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-
-class ProductCreateView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request, *args, **kwargs):
-        # Use the ProductSerializer to validate and save data
-        serializer = ProductSerializer(data=request.data)
-        if serializer.is_valid():
-            product = serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 class ProductDetailView(APIView):
     permission_classes = [AllowAny]  # You can modify permissions based on your needs
 

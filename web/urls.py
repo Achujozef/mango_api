@@ -22,4 +22,7 @@ urlpatterns = [
    path('orders/<int:order_id>/update-items/', update_order_items, name='update_order_items'),
    path('product/<slug:slug>/', product_detail, name='product_detail'),
 
+   path("add-banner/", add_banner, name="add_banner"),
+
+
 ]

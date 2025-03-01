@@ -1,0 +1,171 @@
+@media only screen 
+  and (min-device-width: 210px) 
+  and (max-device-width:320px)
+{
+    .circle {
+        box-shadow: 0px 0px 9px 0px hsl(211.49deg 76.37% 53.53%);
+        width: clamp(100px, 65%, 190px);
+        aspect-ratio: 1/1;
+      
+        border-width: 100%;
+        border-radius: 100%;
+        margin-top:10%;
+    }
+    header.desktop-header {
+        display: none !important;
+    }
+    .mobile {
+        display: contents;
+    }
+    .Feature img {
+        width: 95% ;
+    }
+    .block-caption {
+        -webkit-backdrop-filter: blur(32px);
+        backdrop-filter: blur(32px);
+        max-width: 89%;
+        background-color: hsl(211.49deg 76.37% 53.53% / 68%);
+        color: #fcfcf5;
+        border-radius: 32px;
+        margin-top: -26% !important;
+        margin-left: 4% !important;
+    }
+    .slider-text {
+        width: 71% !important;
+        text-align: right;
+        animation: animate-text 2s ease 0s 1 normal backwards;
+    }
+    .block-caption.right {
+        -webkit-backdrop-filter: blur(32px);
+        backdrop-filter: blur(32px);
+        max-width: 94%;
+        background-color: hsl(211.49deg 76.37% 53.53% / 68%);
+        color: #fcfcf5;
+        border-radius: 32px;
+        margin-top: -55%;
+        margin-left: -1%;
+    }
+}
+@media only screen 
+  and (min-device-width: 320px) 
+  and (max-device-width: 480px)
+{
+    .circle {
+        box-shadow: 0px 0px 9px 0px hsl(211.49deg 76.37% 53.53%);
+        width: clamp(100px, 65%, 190px);
+        aspect-ratio: 1/1;
+       
+        border-width: 100%;
+        border-radius: 100%;
+        margin-top: 10%;
+    }
+    header.desktop-header {
+        display: none !important;
+    }
+    .mobile {
+        display: contents;
+    }
+    .block-caption {
+        -webkit-backdrop-filter: blur(32px);
+        backdrop-filter: blur(32px);
+        max-width: 89%;
+        background-color: hsl(211.49deg 76.37% 53.53% / 68%);
+        color: #fcfcf5;
+        border-radius: 32px;
+        margin-top: -26% !important;
+        margin-left: 4% !important;
+    }
+    .slider-text {
+        width: 71% !important;
+        text-align: right;
+        animation: animate-text 2s ease 0s 1 normal backwards;
+    }
+    .block-caption.right {
+        -webkit-backdrop-filter: blur(32px);
+        backdrop-filter: blur(32px);
+        max-width: 94%;
+        background-color: hsl(211.49deg 76.37% 53.53% / 68%);
+        color: #fcfcf5;
+        border-radius: 32px;
+        margin-top: -55%;
+        margin-left: -1%;
+    }
+}
+@media only screen 
+  and (min-device-width:480px) 
+  and (max-device-width:620px)
+{
+    .circle {
+        box-shadow: 0px 0px 9px 0px hsl(211.49deg 76.37% 53.53%);
+        width: clamp(100px, 65%, 190px);
+        aspect-ratio: 1/1;
+       
+        border-width: 100%;
+        border-radius: 100%;
+        margin-top: 10%;
+    }
+    header.desktop-header {
+        display: none !important;
+    }
+    .mobile {
+        display: contents;
+    }
+    .block-caption {
+        -webkit-backdrop-filter: blur(32px);
+        backdrop-filter: blur(32px);
+        max-width: 89%;
+        background-color: hsl(211.49deg 76.37% 53.53% / 68%);
+        color: #fcfcf5;
+        border-radius: 32px;
+        margin-top: -26% !important;
+        margin-left: 4% !important;
+    }
+    .slider-text {
+        width: 71% !important;
+        text-align: right;
+        animation: animate-text 2s ease 0s 1 normal backwards;
+    }
+    .block-caption.right {
+        -webkit-backdrop-filter: blur(32px);
+        backdrop-filter: blur(32px);
+        max-width: 94%;
+        background-color: hsl(211.49deg 76.37% 53.53% / 68%);
+        color: #fcfcf5;
+        border-radius: 32px;
+        margin-top: -55%;
+        margin-left: -1%;
+    }
+}
+@media only screen 
+  and (min-device-width:620px) 
+  and (max-device-width:720px)
+  {
+    header.desktop-header {
+        display: none !important;
+    }
+
+  }
+@media only screen 
+  and (min-device-width:720px) 
+  and (max-device-width:820px)
+  {
+
+    header.desktop-header {
+        display: none !important;
+    }
+
+}
+@media only screen 
+  and (min-device-width:820px) 
+  and (max-device-width:1200px)
+  {
+
+    header.desktop-header {
+        display: none !important;
+    }
+
+
+
+}
+
+

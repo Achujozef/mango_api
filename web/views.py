@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
 from api.models import Product, ProductVariant, Category, ProductImage, Product, Customer, Order
-from .forms import ProductForm, ProductVariantForm,ProductImageForm,CategoryForm
+from .forms import ProductForm, ProductVariantForm,ProductImageForm,CategoryForm,BannerForm
 from django.forms import modelformset_factory
 from django.core.paginator import Paginator
 from django.contrib.auth import authenticate, login, logout
@@ -87,6 +87,8 @@ ImageFormSet = modelformset_factory(ProductImage, form=ProductImageForm, extra=0
 
 def edit_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
+    
+    ImageFormSet = modelformset_factory(ProductImage, form=ProductImageForm, extra=1, can_delete=True)
 
     if request.method == "POST":
         product_form = ProductForm(request.POST, request.FILES, instance=product)
@@ -94,9 +96,18 @@ def edit_product(request, product_id):
         image_formset = ImageFormSet(request.POST, request.FILES, queryset=ProductImage.objects.filter(product=product))
 
         if product_form.is_valid() and variant_formset.is_valid() and image_formset.is_valid():
-            product_form.save()
-            variant_formset.save()
-            image_formset.save()
+            product = product_form.save()
+            
+            variants = variant_formset.save(commit=False)
+            for variant in variants:
+                variant.product = product
+                variant.save()
+
+            images = image_formset.save(commit=False)
+            for image in images:
+                image.product = product
+                image.save()
+
             messages.success(request, "Product updated successfully!")
             return redirect("product_list")
     else:
@@ -110,6 +121,7 @@ def edit_product(request, product_id):
         "image_formset": image_formset,
         "product": product
     })
+
 
 def category_list(request):
     categories = Category.objects.all()
@@ -282,3 +294,15 @@ def delete_product_ajax(request, product_id):
             return JsonResponse({"message": f"Product '{product.name}' has been permanently deleted.", "status": "success"})
     
     return JsonResponse({"message": "Invalid request", "status": "error"}, status=400)
+
+def add_banner(request):
+    if request.method == "POST":
+        form = BannerForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Banner added successfully!")
+            return redirect(reverse("admin_a_dashboard"))  # Redirect to banner list page
+    else:
+        form = BannerForm()
+
+    return render(request, "admin/banner/add_banner.html", {"form": form})

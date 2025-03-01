@@ -348,3 +348,10 @@ class CustomerActivity(BaseModel):
 
     def __str__(self):
         return f"{self.user} - {self.activity_type} at {self.timestamp}"
+    
+class Banner(BaseModel):
+    title = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='banners/')
+
+    def __str__(self):
+        return self.title

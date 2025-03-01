@@ -10,8 +10,6 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
     path('send-otp/', SendOTPView.as_view(), name='send-otp'),
-    path('category/add/', CategoryCreateView.as_view(), name='category-add'),
-    path('product/add/', ProductCreateView.as_view(), name='product-add'),
     path('product/<int:product_id>/', ProductDetailView.as_view(), name='product-detail'),
     path('categories/', CategoryListView.as_view(), name='category-list'),
     path('cart/recommendations/', CartProductRecommendationView.as_view(), name='cart-recommendations'),
@@ -22,6 +20,7 @@ urlpatterns = [
     path('cart/checkout/', CheckoutSummaryView.as_view(), name='checkout-summary'),
     path('cart/checkout/order/', CreateOrderView.as_view(), name='create-order'),
     path('category/<slug:category_slug>/', ProductCategoryView.as_view(), name='category-products'),
+    path('products/', ProductListView.as_view(), name='product-list'),
 
 
 ]
